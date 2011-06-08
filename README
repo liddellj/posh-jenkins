@@ -1,0 +1,21 @@
+posh-jenkins
+============
+A set of PowerShell Cmdlets providing access to Jenkins features.
+  
+Usage
+-----
+Commands currently available:
+   Jenkins-Info         Displays various details about the Jenkins server.
+   Jenkins-Jobs         Lists the jobs configured on the Jenkins server, colouring each depending on status.
+   Jenkins-Build        Instructs Jenkins to build the specified job with the default parameters.
+
+Installing
+----------
+1. Verify you have PowerShell 2.0 or better with $PSVersionTable.PSVersion.
+2. Verify execution of scripts is allowed with `Get-ExecutionPolicy` (should be `RemoteSigned` or `Unrestricted`). If scripts are not enabled, run PowerShell as Administrator and call `Set-ExecutionPolicy RemoteSigned -Confirm`.
+3. Clone the posh-jenkins repository to your local machine.
+4. Modify your `Microsoft.PowerShell_profile.ps1` to execute `install.ps1`, passing the address of the Jenkins server: . C:\Projects\posh-jenkins\install.ps1 "http://server/jenkins/"
+
+Authored By
+-----------
+ - Jim Liddell, http://liddellj.im/
