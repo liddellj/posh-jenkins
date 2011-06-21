@@ -59,6 +59,8 @@ function Jenkins-Jobs()
             Write-Host $_.name -ForegroundColor "cyan";
         } elseif ($_.color -match "yellow") {
             Write-Host $_.name -ForegroundColor "yellow";
+        } elseif ($_.color -match "red") {
+            Write-Host $_.name -ForegroundColor "red";
         } else {
             Write-Host $_.name -ForegroundColor "white";
         }
