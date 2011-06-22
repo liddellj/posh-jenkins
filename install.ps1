@@ -38,6 +38,8 @@ function Jenkins-Build($job)
     return $resp.StatusCode
 }
 
+Set-Alias jb Jenkins-Build
+
 <#
 .SYNOPSIS
 Lists the jobs configured on the Jenkins server, colouring each depending on status.
@@ -69,6 +71,8 @@ function Jenkins-Jobs()
     return $names
 }
 
+Set-Alias jj Jenkins-Jobs
+
 <#
 .SYNOPSIS
 Displays various details about the Jenkins server.
@@ -88,3 +92,5 @@ function Jenkins-Info()
     
     return $xml.hudson
 }
+
+Set-Alias ji Jenkins-Info
