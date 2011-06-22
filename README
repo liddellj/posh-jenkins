@@ -5,9 +5,11 @@ A set of PowerShell Cmdlets providing access to Jenkins features.
 Usage
 -----
 Commands currently available:
-   Jenkins-Info         Displays various details about the Jenkins server.
-   Jenkins-Jobs         Lists the jobs configured on the Jenkins server, colouring each depending on status.
-   Jenkins-Build        Instructs Jenkins to build the specified job with the default parameters.
+   CmdLet		Alias	Description
+   ------		-----	-----------
+   Jenkins-Info         ji	Displays various details about the Jenkins server.
+   Jenkins-Jobs         jj	Lists the jobs configured on the Jenkins server, colouring each depending on status.
+   Jenkins-Build        jb	Instructs Jenkins to build the specified job with the default parameters.
 
 Installing
 ----------
