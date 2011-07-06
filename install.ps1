@@ -50,25 +50,25 @@ PS C:\> Jenkins-Jobs
 #>
 function Jenkins-Jobs()
 {
-    $url = $jenkinsUrl + "api/xml"
+    $url = $jenkinsUrl + "api/xml?tree=jobs[name,color,lastBuild[building,result]]"
 
 	$client = New-Object System.Net.WebClient
     $bytes = $client.DownloadData($url)
     $response = [System.Text.Encoding]::ASCII.GetString($bytes)
     $xml = [xml]($response)
-    $names = $xml.hudson.job | Select-Object name, color | foreach {
-        if($_.color -match "blue"){
-            Write-Host $_.name -ForegroundColor "cyan";
-        } elseif ($_.color -match "yellow") {
-            Write-Host $_.name -ForegroundColor "yellow";
-        } elseif ($_.color -match "red") {
-            Write-Host $_.name -ForegroundColor "red";
+    $string = $xml.hudson.job | Select-Object @{Name="Name"; Expression={$_.name} }, @{Name="LastResult"; Expression={$_.lastBuild.result}} | Format-Table Name, @{Name="Last Result"; Expression={$_.LastResult}} -autosize | Out-String
+    $array = $string -split "`n"
+    $array | foreach {
+        if($_ -match "SUCCESS"){
+            Write-Host $_ -ForegroundColor "cyan";
+        } elseif ($_ -match "UNSTABLE") {
+            Write-Host $_ -ForegroundColor "yellow";
+        } elseif ($_ -match "FAILURE") {
+            Write-Host $_ -ForegroundColor "red";
         } else {
-            Write-Host $_.name -ForegroundColor "white";
+            Write-Host $_
         }
     }
-    
-    return $names
 }
 
 Set-Alias jj Jenkins-Jobs
