@@ -57,7 +57,7 @@ function Jenkins-Jobs()
     $response = [System.Text.Encoding]::ASCII.GetString($bytes)
     $xml = [xml]($response)
     $string = $xml.hudson.job | Select-Object @{Name="Name"; Expression={$_.name} }, @{Name="LastResult"; Expression={$_.lastBuild.result}} | Format-Table Name, @{Name="Last Result"; Expression={$_.LastResult}} -autosize | Out-String
-    $array = $string -split "`n"
+    $array = $string.Split("`n", [StringSplitOptions]::RemoveEmptyEntries)
     $array | foreach {
         if($_ -match "SUCCESS"){
             Write-Host $_ -ForegroundColor "cyan";
@@ -94,3 +94,47 @@ function Jenkins-Info()
 }
 
 Set-Alias ji Jenkins-Info
+
+function script:jenkinsJobs($filter) {
+    $url = $jenkinsUrl + "api/xml?tree=jobs[name]"
+
+	$client = New-Object System.Net.WebClient
+    $bytes = $client.DownloadData($url)
+    $response = [System.Text.Encoding]::ASCII.GetString($bytes)
+    $xml = [xml]($response)
+    return $string = $xml.hudson.job | foreach { $_.name } | foreach { if ($_ -like '* *') { "'$_'" } else { $_ } }
+}
+
+function script:expandJenkinsBuildAlias($cmd, $rest) {
+    return "jb $cmd$rest"
+}
+
+function JenkinsBuildTabExpansion($lastBlock) {
+    if($lastBlock -match '^jb (?<cmd>\S+)(?<args> .*)$') {
+        $lastBlock = expandJenkinsBuildAlias $Matches['cmd'] $Matches['args']
+    }
+
+    switch -regex ($lastBlock) {
+        '^jb.* (?<names>\S*)$' {
+            jenkinsJobs $matches['names']
+        }
+    }
+
+    jenkinsJobs $matches['cmd'] $matches['op']
+}
+
+$teBackup = 'posh-jenkins_DefaultTabExpansion'
+if(!(Test-Path Function:\$teBackup)) {
+    Rename-Item Function:\TabExpansion $teBackup
+}
+
+function TabExpansion($line, $lastWord) {
+    $lastBlock = [regex]::Split($line, '[|;]')[-1]
+    
+    switch -regex ($lastBlock) {
+        # Execute Jenkins-Build tab completion for all Jenkins-Build commands
+        'jb (.*)' { JenkinsBuildTabExpansion $lastBlock }
+        # Fall back on existing tab expansion
+        default { & $teBackup $line $lastWord }
+    }
+}
