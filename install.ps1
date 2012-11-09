@@ -1,3 +1,8 @@
+if($PSVersionTable.PSVersion.Major -lt 2) {
+    Write-Warning "posh-jenkins requires PowerShell 2.0 or better; you have version $($Host.Version)."
+    return
+}
+
 [System.Reflection.Assembly]::LoadWithPartialName("System.Web") | out-null
 
 if ($args.length -match 0) {
@@ -102,7 +107,13 @@ function script:jenkinsJobs($filter) {
     $bytes = $client.DownloadData($url)
     $response = [System.Text.Encoding]::ASCII.GetString($bytes)
     $xml = [xml]($response)
-    return $string = $xml.hudson.job | foreach { $_.name } | foreach { if ($_ -like '* *') { "'$_'" } else { $_ } }
+    return $string = $xml.hudson.job | foreach { $_.name } | where { $_ -like "$filter*" } | foreach {
+        if ($_ -like '* *') {
+            """$_"""
+        } else {
+            $_
+        }
+    }
 }
 
 function script:expandJenkinsBuildAlias($cmd, $rest) {
@@ -110,7 +121,7 @@ function script:expandJenkinsBuildAlias($cmd, $rest) {
 }
 
 function JenkinsBuildTabExpansion($lastBlock) {
-    if($lastBlock -match '^jb (?<cmd>\S+)(?<args> .*)$') {
+    if($lastBlock -match '^$jb (?<job>\S+)$') {
         $lastBlock = expandJenkinsBuildAlias $Matches['cmd'] $Matches['args']
     }
 
@@ -123,18 +134,18 @@ function JenkinsBuildTabExpansion($lastBlock) {
     jenkinsJobs $matches['cmd'] $matches['op']
 }
 
-$teBackup = 'posh-jenkins_DefaultTabExpansion'
-if(!(Test-Path Function:\$teBackup)) {
-    Rename-Item Function:\TabExpansion $teBackup
+if (Test-Path Function:\TabExpansion) {
+    Rename-Item Function:\TabExpansion JenkinsTabExpansionBackup
 }
 
 function TabExpansion($line, $lastWord) {
-    $lastBlock = [regex]::Split($line, '[|;]')[-1]
+    $lastBlock = [regex]::Split($line, '[|;]')[-1].TrimStart()
     
     switch -regex ($lastBlock) {
         # Execute Jenkins-Build tab completion for all Jenkins-Build commands
         'jb (.*)' { JenkinsBuildTabExpansion $lastBlock }
+        
         # Fall back on existing tab expansion
-        default { & $teBackup $line $lastWord }
+        default { if (Test-Path Function:\JenkinsTabExpansionBackup) { JenkinsTabExpansionBackup $line $lastWord } }
     }
 }
