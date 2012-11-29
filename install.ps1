@@ -102,7 +102,6 @@ Set-Alias ji Jenkins-Info
 
 function script:jenkinsJobs($filter) {
     $url = $jenkinsUrl + "api/xml?tree=jobs[name]"
-
 	$client = New-Object System.Net.WebClient
     $bytes = $client.DownloadData($url)
     $response = [System.Text.Encoding]::ASCII.GetString($bytes)
@@ -130,8 +129,6 @@ function JenkinsBuildTabExpansion($lastBlock) {
             jenkinsJobs $matches['names']
         }
     }
-
-    jenkinsJobs $matches['cmd'] $matches['op']
 }
 
 if (Test-Path Function:\TabExpansion) {
